@@ -1,0 +1,11 @@
+*.gb
+*.lst
+*.map
+*.o
+*.sav
+*.sym
+*.ASM
+
+*.sw[ap]
+
+node_modules
