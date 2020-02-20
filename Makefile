@@ -1,18 +1,19 @@
-CC  = lcc -Wa-l -Wl-m -Wl-j
+all: src
 
-all: game.gb
+tile-data:
+	$(MAKE) -C tile-data
 
-game.gb: game.o title.o
-	$(CC) -o game.gb $^
+src: tile-data
+	$(MAKE) -C src
 
-%.o: %.c
-	$(CC) -c -o $@ $<
+run:
+	open src/cookie-hunt.gb
 
-%.s: %.c
-	$(CC) -S -o $@ $<
+clean:
+	$(MAKE) -C tile-data clean
+	$(MAKE) -C src clean
 
-%.o: %.s
-	$(CC) -c -o $@ $<
+distclean: clean
+	$(MAKE) -C tile-data distclean
 
-%.gb: %.o
-	$(CC) -o $@ $<
+.PHONY: tile-data src
