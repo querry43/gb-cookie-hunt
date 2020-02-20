@@ -9,7 +9,17 @@ images = \
 	../images/hud.png \
 	../images/background.png
 
-all: tileset.o white.map.o black.map.o cookie.map.o hud.map.o background.map.o
+sprites = \
+	../images/robot.sprite.png
+
+all: \
+	tileset.o \
+	white.map.o \
+	black.map.o \
+	cookie.map.o \
+	hud.map.o \
+	background.map.o \
+	robot.sprite.o
 
 tileset.png: $(images)
 	$(GGBGFX) tileset -o $@ $^
@@ -19,6 +29,9 @@ tileset.c: tileset.png
 
 %.map.c: ../images/%.png tileset.png
 	 $(GGBGFX) tilemap --name $*_map -o $@ $^
+
+%.sprite.c: ../images/%.sprite.png
+	$(GGBGFX) sprite --name  $*_sprite -o $@ $<
 
 %.o: %.c
 	$(CC) -c -o $@ $<
@@ -30,4 +43,4 @@ distclean: clean
 	rm -f *.c tileset.png
 
 .PHONY: clean distclean
-.PRECIOUS: %.map.c
+.PRECIOUS: %.map.c %.sprite.c

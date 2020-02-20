@@ -5,6 +5,7 @@
 *.sav
 *.sym
 *.ASM
+.DS_Store
 
 *.sw[ap]
 

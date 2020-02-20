@@ -1,3 +1,4 @@
 *.map.c
+*.sprite.c
 tileset.png
 tileset.c
