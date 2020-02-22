@@ -1,21 +1,12 @@
 #include <gb/gb.h>
 #include <stdio.h>
 #include "../tile-data/tileset.h"
+#include "types.h"
 
 #define MIN(x,y) ((x) > (y) ? (y) : (x))
 #define MAX(x,y) ((x) < (y) ? (y) : (x))
 
-typedef union _pos {
-  struct {
-    UBYTE l;
-    UBYTE h;
-  } b;
-  WORD w;
-} pos;
-
-pos x_speed, y_speed;
-pos gumdrop_x_pos, gumdrop_y_pos;
-pos background_x_pos, background_y_pos;
+state_t state;
 
 const UBYTE refresh = 5;
 const WORD acceleration = 0x0002;
@@ -32,15 +23,20 @@ void read_input();
 void move_gumdrop();
 void scroll_background();
 
+void animate_sprites();
+
 void main()
 {
+
   init();
 
   while(TRUE) {
     delay(refresh);
+    state.frame_counter++;
 
     read_input();
     move_gumdrop();
+    animate_sprites();
 
     // background scrolls during VBL
   }
@@ -51,12 +47,9 @@ void init() {
   DISPLAY_OFF;
 
   set_win_data(0, 26, tileset);
-  set_sprite_data(0, 4, robot_sprite);
+  set_sprite_data(0, 8, robot_sprite);
 
-  x_speed.w = x_speed.w = 0x0000;
-
-  gumdrop_x_pos.w = gumdrop_y_pos.w = 0x4b00;
-  background_x_pos.w = background_x_pos.w = 0;
+  state.gumdrop.x.b.h = state.gumdrop.y.b.h = 75;
 
   init_interface();
   init_sprites();
@@ -74,9 +67,9 @@ void init_sprites() {
   SPRITES_8x16;
 
   set_sprite_tile(0, 0x00);
-  set_sprite_tile(1, 0x02);
-  move_sprite(0, gumdrop_x_pos.b.h, gumdrop_y_pos.b.h);
-  move_sprite(1, gumdrop_x_pos.b.h + 8, gumdrop_y_pos.b.h);
+  set_sprite_tile(1, 0x04);
+  move_sprite(0, state.gumdrop.x.b.h, state.gumdrop.y.b.h);
+  move_sprite(1, state.gumdrop.x.b.h + 8, state.gumdrop.y.b.h);
 }
 
 void init_interface() {
@@ -101,42 +94,51 @@ void read_input() {
 
   // set gumdrop's speed, limiting it to the min and max speeds
   if (j & J_LEFT) {
-    x_speed.w = MAX(x_speed.w - acceleration, min_speed);
+    state.gumdrop.speed.x.w = MAX(state.gumdrop.speed.x.w - acceleration, min_speed);
   } else if (j & J_RIGHT) {
-    x_speed.w = MIN(x_speed.w + acceleration, max_speed);
+    state.gumdrop.speed.x.w = MIN(state.gumdrop.speed.x.w + acceleration, max_speed);
   }
 
   if (j & J_UP) {
-    y_speed.w = MAX(y_speed.w - acceleration, min_speed);
+    state.gumdrop.speed.y.w = MAX(state.gumdrop.speed.y.w - acceleration, min_speed);
   } else if (j & J_DOWN) {
-    y_speed.w = MIN(y_speed.w + acceleration, max_speed);
+    state.gumdrop.speed.y.w = MIN(state.gumdrop.speed.y.w + acceleration, max_speed);
   }
 }
 
 // scroll gumdrop or the background if gumdrop is close to the edge
 void move_gumdrop() {
-  if (gumdrop_x_pos.b.h > 160 - scroll_boundary && x_speed.w > 0) {
-    background_x_pos.w += x_speed.w;
-  } else if (gumdrop_x_pos.b.h < scroll_boundary && x_speed.w < 0) {
-    background_x_pos.w += x_speed.w;
+  if (state.gumdrop.x.b.h > 160 - scroll_boundary && state.gumdrop.speed.x.w > 0) {
+    state.background.x.w += state.gumdrop.speed.x.w;
+  } else if (state.gumdrop.x.b.h < scroll_boundary && state.gumdrop.speed.x.w < 0) {
+    state.background.x.w += state.gumdrop.speed.x.w;
   } else {
-    gumdrop_x_pos.w += x_speed.w;
+    state.gumdrop.x.w += state.gumdrop.speed.x.w;
   }
 
-  if (gumdrop_y_pos.b.h > 160 - 16 - scroll_boundary && y_speed.w > 0) {
-    background_y_pos.w += y_speed.w;
-  } else if (gumdrop_y_pos.b.h < scroll_boundary && y_speed.w < 0) {
-    background_y_pos.w += y_speed.w;
+  if (state.gumdrop.y.b.h > 160 - 16 - scroll_boundary && state.gumdrop.speed.y.w > 0) {
+    state.background.y.w += state.gumdrop.speed.y.w;
+  } else if (state.gumdrop.y.b.h < scroll_boundary && state.gumdrop.speed.y.w < 0) {
+    state.background.y.w += state.gumdrop.speed.y.w;
   } else {
-    gumdrop_y_pos.w += y_speed.w;
+    state.gumdrop.y.w += state.gumdrop.speed.y.w;
   }
 
-  move_sprite(0, gumdrop_x_pos.b.h, gumdrop_y_pos.b.h);
-  move_sprite(1, gumdrop_x_pos.b.h + 8, gumdrop_y_pos.b.h);
+  move_sprite(0, state.gumdrop.x.b.h, state.gumdrop.y.b.h);
+  move_sprite(1, state.gumdrop.x.b.h + 8, state.gumdrop.y.b.h);
 }
 
-void scroll_background() NONBANKED {
-  move_bkg(background_x_pos.b.h, background_y_pos.b.h);
+void scroll_background() {
+  move_bkg(state.background.x.b.h, state.background.y.b.h);
+}
+
+void animate_sprites() {
+  if ((state.frame_counter % 20) == 0) {
+    set_sprite_tile(0, 0x00 + (state.gumdrop.sprite_offset * 2));
+    set_sprite_tile(1, 0x04 + (state.gumdrop.sprite_offset * 2));
+
+    state.gumdrop.sprite_offset = (state.gumdrop.sprite_offset + 1) % 2;
+  }
 }
 
 // vim: ts=2 sw=2
