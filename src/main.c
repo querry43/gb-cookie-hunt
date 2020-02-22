@@ -1,5 +1,6 @@
+#include <gb/font.h>
 #include <gb/gb.h>
-#include <stdio.h>
+#include <stdlib.h>
 #include "../tile-data/tileset.h"
 #include "types.h"
 
@@ -25,6 +26,11 @@ void scroll_background();
 
 void animate_sprites();
 
+void show_font();
+void printc_win(UBYTE x, UBYTE y, char c);
+void prints_win(UBYTE x, UBYTE y, char *c);
+void printi_win(UBYTE x, UBYTE y, UWORD i);
+
 void main()
 {
   init();
@@ -37,6 +43,17 @@ void main()
     move_gumdrop();
     animate_sprites();
 
+    if ((state.frame_counter % 8) == 0) {
+      printi_win(-2, 0, state.background.x.b.h);
+      printi_win(-2, 1, state.background.y.b.h);
+
+      printi_win(4, 0, state.gumdrop.x.b.h);
+      printi_win(4, 1, state.gumdrop.y.b.h);
+
+      printi_win(10, 0, state.background.x.b.h + state.gumdrop.x.b.h);
+      printi_win(10, 1, state.background.y.b.h + state.gumdrop.y.b.h);
+    }
+
     // background scrolls during VBL
   }
 }
@@ -45,7 +62,10 @@ void init() {
   disable_interrupts();
   DISPLAY_OFF;
 
-  set_win_data(0, 26, tileset);
+  font_init();
+  font_load(font_min);
+
+  set_win_data(0x26, 26, tileset);
   set_sprite_data(0, 8, robot_sprite);
 
   state.gumdrop.x.b.h = state.gumdrop.y.b.h = 75;
@@ -55,11 +75,73 @@ void init() {
 
   add_VBL(scroll_background);
 
+  //show_font();
+
   SHOW_BKG;
   SHOW_WIN;
   SHOW_SPRITES;
   DISPLAY_ON;
   enable_interrupts();
+}
+
+void printc_win(UBYTE x, UBYTE y, char c) {
+  const font_map[] = {
+    // 0 - 9
+    0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
+
+    // A - Z
+    0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
+    0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25,
+
+    // ' '
+    0x00,
+  };
+
+  if (c >= 48 && c <= 57) {
+    set_win_tiles(x, y, 1, 1, font_map + c - 48);
+  } else if (c >= 65 && c <= 90) {
+    set_win_tiles(x, y, 1, 1, font_map + c - 55);
+  } else if (c >= 97 && c <= 122) {
+    set_win_tiles(x, y, 1, 1, font_map + (c - 87));
+  } else {
+    set_win_tiles(x, y, 1, 1, font_map + 36);
+  }
+}
+
+void prints_win(UBYTE x, UBYTE y, char *c) {
+  UBYTE i = 0;
+  while (*c != '\0') {
+    printc_win(x+i, y, *c);
+    c++;
+    i++;
+  }
+}
+
+void printi_win(UBYTE x, UBYTE y, UWORD i) {
+  int j = 4;
+  char c[6] = { ' ', ' ', ' ', ' ', ' ', '\0' };
+
+  if (i == 0) {
+    c[j] = '0';
+  }
+
+  while (i > 0 && j < 5) {
+    c[j] = (i % 10) + '0';
+    i /= 10;
+    j--;
+  }
+
+  prints_win(x, y, c);
+}
+
+void show_font() {
+  prints_win(0, 0, "AZ az 0 9");
+
+  printi_win(0, 1, 65535);
+
+  printi_win(6, 1, 0);
+
+  printi_win(12, 1, -1);
 }
 
 void init_sprites() {
@@ -79,9 +161,9 @@ void init_interface() {
       set_bkg_tiles(x, y, 4, 4, background_map);
 
   // just some context, remove me
-  set_bkg_tiles(2, 0, 2, 2, cookie_map);
-  set_bkg_tiles(16, 6, 2, 2, cookie_map);
-  set_bkg_tiles(13, 11, 2, 2, cookie_map);
+  set_bkg_tiles(2, 0, 2, 2, cookie_map);   // ( 2 * 8) + 8 =  24, ( 0 * 8) + 16 = 16
+  set_bkg_tiles(16, 6, 2, 2, cookie_map);  // (16 * 8) + 8 = 136, ( 6 * 8) + 16 = 64
+  set_bkg_tiles(13, 11, 2, 2, cookie_map); // (13 * 8) + 8 = 112, (11 * 8) + 16 = 104
 
   set_win_tiles(0, 0, 20, 2, hud_map);
 

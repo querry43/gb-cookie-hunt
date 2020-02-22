@@ -27,8 +27,9 @@ tileset.png: $(images)
 tileset.c: tileset.png
 	$(GGBGFX) tiledata -o $@ $<
 
+# offset maps by 38 (the size of the font)
 %.map.c: ../images/%.png tileset.png
-	 $(GGBGFX) tilemap --name $*_map -o $@ $^
+	 $(GGBGFX) tilemap --offset 38 --name $*_map -o $@ $^
 
 %.sprite.c: ../images/%.sprite.png
 	$(GGBGFX) sprite --name  $*_sprite -o $@ $<
