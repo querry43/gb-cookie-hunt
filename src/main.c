@@ -27,7 +27,6 @@ void animate_sprites();
 
 void main()
 {
-
   init();
 
   while(TRUE) {
@@ -97,12 +96,20 @@ void read_input() {
     state.gumdrop.speed.x.w = MAX(state.gumdrop.speed.x.w - acceleration, min_speed);
   } else if (j & J_RIGHT) {
     state.gumdrop.speed.x.w = MIN(state.gumdrop.speed.x.w + acceleration, max_speed);
+  } else if (state.gumdrop.speed.x.w > 0) {
+    state.gumdrop.speed.x.w -= MIN(acceleration, state.gumdrop.speed.x.w);
+  } else if (state.gumdrop.speed.x.w < 0) {
+    state.gumdrop.speed.x.w -= MAX(-acceleration, state.gumdrop.speed.x.w);
   }
 
   if (j & J_UP) {
     state.gumdrop.speed.y.w = MAX(state.gumdrop.speed.y.w - acceleration, min_speed);
   } else if (j & J_DOWN) {
     state.gumdrop.speed.y.w = MIN(state.gumdrop.speed.y.w + acceleration, max_speed);
+  } else if (state.gumdrop.speed.y.w > 0) {
+    state.gumdrop.speed.y.w -= MIN(acceleration, state.gumdrop.speed.y.w);
+  } else if (state.gumdrop.speed.y.w < 0) {
+    state.gumdrop.speed.y.w -= MAX(-acceleration, state.gumdrop.speed.y.w);
   }
 }
 
@@ -133,7 +140,7 @@ void scroll_background() {
 }
 
 void animate_sprites() {
-  if ((state.frame_counter % 20) == 0) {
+  if ((state.frame_counter % 64) == 0) {
     set_sprite_tile(0, 0x00 + (state.gumdrop.sprite_offset * 2));
     set_sprite_tile(1, 0x04 + (state.gumdrop.sprite_offset * 2));
 
