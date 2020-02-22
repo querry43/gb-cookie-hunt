@@ -1,30 +1,25 @@
-#include <gb/font.h>
 #include <gb/gb.h>
 #include <rand.h>
 #include <stdlib.h>
 #include "../tile-data/tileset.h"
+#include "text.h"
 #include "types.h"
 
-#define MIN(x,y) ((x) > (y) ? (y) : (x))
-#define MAX(x,y) ((x) < (y) ? (y) : (x))
+#define DEBUG TRUE
 
-state_t state;
+#define acceleration ((WORD) 0x0008)
+#define scroll_boundary ((UBYTE) 40)
 
-struct _cookie {
-  struct _tile {
-    UBYTE x;
-    UBYTE y;
-  } tile;
-  pos_t x;
-  pos_t y;
-} cookie;
+#define intersect_distance ((UBYTE) 10)
 
-const UBYTE refresh = 5;
-const WORD acceleration = 0x0002;
-const UBYTE scroll_boundary = 40;
+#define max_speed ((WORD) 0x0100)
+#define min_speed ((UWORD) 0xff00U)
 
-#define max_speed ((WORD) 0x00a0)
-#define min_speed ((UWORD) 0xff60U)
+#define min(x,y) ((x) > (y) ? (y) : (x))
+#define max(x,y) ((x) < (y) ? (y) : (x))
+
+#define gumdrop_x() (state.background.x.b.h + state.gumdrop.x.b.h)
+#define gumdrop_y() (state.background.y.b.h + state.gumdrop.y.b.h)
 
 void init();
 void init_interface();
@@ -37,49 +32,48 @@ void scroll_background();
 
 void animate_sprites();
 
-void show_font();
-void printc_win(UBYTE x, UBYTE y, char c);
-void prints_win(UBYTE x, UBYTE y, char *c);
-void printi_win(UBYTE x, UBYTE y, UWORD i);
+#define intersects_with_gumball(obj) \
+  ((abs(gumdrop_x() - obj.x.b.h) < intersect_distance) \
+  && (abs(gumdrop_y() - obj.y.b.h) < intersect_distance))
 
-int intersects_with_gumball(pos_t *x, pos_t *y);
+state_t state;
 
-int intersects_with_gumball(pos_t *x, pos_t *y) {
-  return
-    abs(state.background.x.b.h + state.gumdrop.x.b.h - x->b.h) < 16
-    && abs(state.background.y.b.h + state.gumdrop.y.b.h - y->b.h) < 16;
-}
+// this is temporary
+struct _cookie {
+  struct _tile {
+    UBYTE x;
+    UBYTE y;
+  } tile;
+  pos_t x;
+  pos_t y;
+} cookie;
 
 void main()
 {
   init();
 
   while(TRUE) {
-    delay(refresh);
+    wait_vbl_done();
     state.frame_counter++;
 
     read_input();
     move_gumdrop();
     animate_sprites();
 
+    // background scrolls during VBL
+
     if ((state.frame_counter % 8) == 0) {
-      printi_win(-2, 0, state.background.x.b.h);
-      printi_win(-2, 1, state.background.y.b.h);
+      if (DEBUG) {
+        printi_win(-2, 0, gumdrop_x());
+        printi_win(-2, 1, gumdrop_y());
+      }
 
-      printi_win(4, 0, state.gumdrop.x.b.h);
-      printi_win(4, 1, state.gumdrop.y.b.h);
-
-      printi_win(10, 0, state.background.x.b.h + state.gumdrop.x.b.h);
-      printi_win(10, 1, state.background.y.b.h + state.gumdrop.y.b.h);
-
-      if (intersects_with_gumball(&cookie.x, &cookie.y)) {
-        prints_win(16, 0, "x");
+      if (intersects_with_gumball(cookie)) {
+        printc_win(16, 0, 'X');
       } else {
-        prints_win(16, 0, "o");
+        printc_win(16, 0, 'O');
       }
     }
-
-    // background scrolls during VBL
   }
 }
 
@@ -89,10 +83,9 @@ void init() {
 
   initarand(0);
 
-  font_init();
-  font_load(font_min);
+  init_text();
 
-  set_win_data(0x26, 26, tileset);
+  set_bkg_data(0x26, 26, tileset);
   set_sprite_data(0, 8, robot_sprite);
 
   state.gumdrop.x.b.h = state.gumdrop.y.b.h = 75;
@@ -103,8 +96,6 @@ void init() {
   add_VBL(scroll_background);
 
   init_cookie();
-
-  //show_font();
 
   SHOW_BKG;
   SHOW_WIN;
@@ -119,66 +110,6 @@ void init_cookie() {
   cookie.x.b.h = (cookie.tile.x * 8) + 8;
   cookie.y.b.h = (cookie.tile.y * 8) + 16;
   set_bkg_tiles(cookie.tile.x, cookie.tile.y, 2, 2, cookie_map);
-}
-
-void printc_win(UBYTE x, UBYTE y, char c) {
-  const font_map[] = {
-    // 0 - 9
-    0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b,
-
-    // A - Z
-    0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
-    0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25,
-
-    // ' '
-    0x00,
-  };
-
-  if (c >= 48 && c <= 57) {
-    set_win_tiles(x, y, 1, 1, font_map + c - 48);
-  } else if (c >= 65 && c <= 90) {
-    set_win_tiles(x, y, 1, 1, font_map + c - 55);
-  } else if (c >= 97 && c <= 122) {
-    set_win_tiles(x, y, 1, 1, font_map + (c - 87));
-  } else {
-    set_win_tiles(x, y, 1, 1, font_map + 36);
-  }
-}
-
-void prints_win(UBYTE x, UBYTE y, char *c) {
-  UBYTE i = 0;
-  while (*c != '\0') {
-    printc_win(x+i, y, *c);
-    c++;
-    i++;
-  }
-}
-
-void printi_win(UBYTE x, UBYTE y, UWORD i) {
-  int j = 4;
-  char c[6] = { ' ', ' ', ' ', ' ', ' ', '\0' };
-
-  if (i == 0) {
-    c[j] = '0';
-  }
-
-  while (i > 0 && j < 5) {
-    c[j] = (i % 10) + '0';
-    i /= 10;
-    j--;
-  }
-
-  prints_win(x, y, c);
-}
-
-void show_font() {
-  prints_win(0, 0, "AZ az 0 9");
-
-  printi_win(0, 1, 65535);
-
-  printi_win(6, 1, 0);
-
-  printi_win(12, 1, -1);
 }
 
 void init_sprites() {
@@ -207,23 +138,23 @@ void read_input() {
 
   // set gumdrop's speed, limiting it to the min and max speeds
   if (j & J_LEFT) {
-    state.gumdrop.speed.x.w = MAX(state.gumdrop.speed.x.w - acceleration, min_speed);
+    state.gumdrop.speed.x.w = max(state.gumdrop.speed.x.w - acceleration, min_speed);
   } else if (j & J_RIGHT) {
-    state.gumdrop.speed.x.w = MIN(state.gumdrop.speed.x.w + acceleration, max_speed);
+    state.gumdrop.speed.x.w = min(state.gumdrop.speed.x.w + acceleration, max_speed);
   } else if (state.gumdrop.speed.x.w > 0) {
-    state.gumdrop.speed.x.w -= MIN(acceleration, state.gumdrop.speed.x.w);
+    state.gumdrop.speed.x.w -= min(acceleration, state.gumdrop.speed.x.w);
   } else if (state.gumdrop.speed.x.w < 0) {
-    state.gumdrop.speed.x.w -= MAX(-acceleration, state.gumdrop.speed.x.w);
+    state.gumdrop.speed.x.w -= max(-acceleration, state.gumdrop.speed.x.w);
   }
 
   if (j & J_UP) {
-    state.gumdrop.speed.y.w = MAX(state.gumdrop.speed.y.w - acceleration, min_speed);
+    state.gumdrop.speed.y.w = max(state.gumdrop.speed.y.w - acceleration, min_speed);
   } else if (j & J_DOWN) {
-    state.gumdrop.speed.y.w = MIN(state.gumdrop.speed.y.w + acceleration, max_speed);
+    state.gumdrop.speed.y.w = min(state.gumdrop.speed.y.w + acceleration, max_speed);
   } else if (state.gumdrop.speed.y.w > 0) {
-    state.gumdrop.speed.y.w -= MIN(acceleration, state.gumdrop.speed.y.w);
+    state.gumdrop.speed.y.w -= min(acceleration, state.gumdrop.speed.y.w);
   } else if (state.gumdrop.speed.y.w < 0) {
-    state.gumdrop.speed.y.w -= MAX(-acceleration, state.gumdrop.speed.y.w);
+    state.gumdrop.speed.y.w -= max(-acceleration, state.gumdrop.speed.y.w);
   }
 }
 
