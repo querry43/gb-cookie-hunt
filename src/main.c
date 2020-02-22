@@ -1,5 +1,6 @@
 #include <gb/font.h>
 #include <gb/gb.h>
+#include <rand.h>
 #include <stdlib.h>
 #include "../tile-data/tileset.h"
 #include "types.h"
@@ -8,6 +9,15 @@
 #define MAX(x,y) ((x) < (y) ? (y) : (x))
 
 state_t state;
+
+struct _cookie {
+  struct _tile {
+    UBYTE x;
+    UBYTE y;
+  } tile;
+  pos_t x;
+  pos_t y;
+} cookie;
 
 const UBYTE refresh = 5;
 const WORD acceleration = 0x0002;
@@ -19,6 +29,7 @@ const UBYTE scroll_boundary = 40;
 void init();
 void init_interface();
 void init_sprites();
+void init_cookie();
 
 void read_input();
 void move_gumdrop();
@@ -30,6 +41,14 @@ void show_font();
 void printc_win(UBYTE x, UBYTE y, char c);
 void prints_win(UBYTE x, UBYTE y, char *c);
 void printi_win(UBYTE x, UBYTE y, UWORD i);
+
+int intersects_with_gumball(pos_t *x, pos_t *y);
+
+int intersects_with_gumball(pos_t *x, pos_t *y) {
+  return
+    abs(state.background.x.b.h + state.gumdrop.x.b.h - x->b.h) < 16
+    && abs(state.background.y.b.h + state.gumdrop.y.b.h - y->b.h) < 16;
+}
 
 void main()
 {
@@ -52,6 +71,12 @@ void main()
 
       printi_win(10, 0, state.background.x.b.h + state.gumdrop.x.b.h);
       printi_win(10, 1, state.background.y.b.h + state.gumdrop.y.b.h);
+
+      if (intersects_with_gumball(&cookie.x, &cookie.y)) {
+        prints_win(16, 0, "x");
+      } else {
+        prints_win(16, 0, "o");
+      }
     }
 
     // background scrolls during VBL
@@ -61,6 +86,8 @@ void main()
 void init() {
   disable_interrupts();
   DISPLAY_OFF;
+
+  initarand(0);
 
   font_init();
   font_load(font_min);
@@ -75,6 +102,8 @@ void init() {
 
   add_VBL(scroll_background);
 
+  init_cookie();
+
   //show_font();
 
   SHOW_BKG;
@@ -82,6 +111,14 @@ void init() {
   SHOW_SPRITES;
   DISPLAY_ON;
   enable_interrupts();
+}
+
+void init_cookie() {
+  cookie.tile.x = arand() & 0x1f;
+  cookie.tile.y = arand() & 0x1f;
+  cookie.x.b.h = (cookie.tile.x * 8) + 8;
+  cookie.y.b.h = (cookie.tile.y * 8) + 16;
+  set_bkg_tiles(cookie.tile.x, cookie.tile.y, 2, 2, cookie_map);
 }
 
 void printc_win(UBYTE x, UBYTE y, char c) {
@@ -159,11 +196,6 @@ void init_interface() {
   for (x = 0; x < 32; x += 4)
     for (y = 0; y < 32; y += 4)
       set_bkg_tiles(x, y, 4, 4, background_map);
-
-  // just some context, remove me
-  set_bkg_tiles(2, 0, 2, 2, cookie_map);   // ( 2 * 8) + 8 =  24, ( 0 * 8) + 16 = 16
-  set_bkg_tiles(16, 6, 2, 2, cookie_map);  // (16 * 8) + 8 = 136, ( 6 * 8) + 16 = 64
-  set_bkg_tiles(13, 11, 2, 2, cookie_map); // (13 * 8) + 8 = 112, (11 * 8) + 16 = 104
 
   set_win_tiles(0, 0, 20, 2, hud_map);
 
