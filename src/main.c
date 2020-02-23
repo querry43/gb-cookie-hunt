@@ -5,15 +5,15 @@
 #include "text.h"
 #include "types.h"
 
-#define DEBUG TRUE
+#define DEBUG FALSE
 
 #define acceleration ((WORD) 0x0008)
 #define scroll_boundary ((UBYTE) 40)
 
 #define intersect_distance ((UBYTE) 10)
 
-#define max_speed ((WORD) 0x0100)
-#define min_speed ((UWORD) 0xff00U)
+#define max_speed ((WORD) 0x0190)
+#define min_speed ((UWORD) 0xfe70U)
 
 #define min(x,y) ((x) > (y) ? (y) : (x))
 #define max(x,y) ((x) < (y) ? (y) : (x))
@@ -24,11 +24,15 @@
 void init();
 void init_interface();
 void init_sprites();
-void init_cookie();
+void init_cookies();
+void place_cookie(UBYTE);
+void remove_cookie(UBYTE);
+void place_background(UBYTE, UBYTE);
 
 void read_input();
 void move_gumdrop();
 void scroll_background();
+void test_intersection();
 
 void animate_sprites();
 
@@ -37,16 +41,6 @@ void animate_sprites();
   && (abs(gumdrop_y() - obj.y.b.h) < intersect_distance))
 
 state_t state;
-
-// this is temporary
-struct _cookie {
-  struct _tile {
-    UBYTE x;
-    UBYTE y;
-  } tile;
-  pos_t x;
-  pos_t y;
-} cookie;
 
 void main()
 {
@@ -68,11 +62,21 @@ void main()
         printi_win(-2, 1, gumdrop_y());
       }
 
-      if (intersects_with_gumball(cookie)) {
-        printc_win(16, 0, 'X');
-      } else {
-        printc_win(16, 0, 'O');
-      }
+      printi_win(6, 1, state.cookie_count);
+
+      test_intersection();
+    }
+  }
+}
+
+void test_intersection() {
+  int i;
+
+  for (i = 0; i < num_cookies; i++) {
+    if (intersects_with_gumball(state.cookies[i])) {
+      remove_cookie(i);
+      place_cookie(i);
+      state.cookie_count++;
     }
   }
 }
@@ -95,7 +99,7 @@ void init() {
 
   add_VBL(scroll_background);
 
-  init_cookie();
+  init_cookies();
 
   SHOW_BKG;
   SHOW_WIN;
@@ -104,12 +108,31 @@ void init() {
   enable_interrupts();
 }
 
-void init_cookie() {
-  cookie.tile.x = arand() & 0x1f;
-  cookie.tile.y = arand() & 0x1f;
-  cookie.x.b.h = (cookie.tile.x * 8) + 8;
-  cookie.y.b.h = (cookie.tile.y * 8) + 16;
-  set_bkg_tiles(cookie.tile.x, cookie.tile.y, 2, 2, cookie_map);
+void init_cookies() {
+  int i;
+
+  for (i = 0; i < num_cookies; i++)
+    place_cookie(i);
+}
+
+void place_cookie(UBYTE i) {
+  state.cookies[i].tile.x = arand() & 0x1f;
+  state.cookies[i].tile.y = arand() & 0x1f;
+  state.cookies[i].x.b.h = (state.cookies[i].tile.x * 8) + 8;
+  state.cookies[i].y.b.h = (state.cookies[i].tile.y * 8) + 16;
+  set_bkg_tiles(state.cookies[i].tile.x, state.cookies[i].tile.y, 2, 2, cookie_map);
+}
+
+void remove_cookie(UBYTE i) {
+  int x, y;
+
+  for (y = 0; y < 2; y++)
+    for (x = 0; x < 2; x++)
+      place_background(state.cookies[i].tile.x + x, state.cookies[i].tile.y + y);
+}
+
+void place_background(UBYTE x, UBYTE y) {
+  set_bkg_tiles(x, y, 1, 1, background_map + (x % 4) + ((y % 4) * 4));
 }
 
 void init_sprites() {
@@ -129,6 +152,8 @@ void init_interface() {
       set_bkg_tiles(x, y, 4, 4, background_map);
 
   set_win_tiles(0, 0, 20, 2, hud_map);
+
+  prints_win(4, 0, "cookies");
 
   move_win(7, 128);
 }
