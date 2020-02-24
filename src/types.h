@@ -53,6 +53,8 @@ typedef struct _state_t {
   cookie_t cookies[num_cookies];
 
   UBYTE cookie_count;
+  UBYTE energy_level;
+  UWORD score;
 } state_t;
 
 #endif

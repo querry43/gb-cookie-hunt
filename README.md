@@ -1,7 +1,7 @@
 cookie-hunt
 ===========
 
-![screenshot](https://raw.githubusercontent.com/querry43/gb-cookie-hunt/master/screenshot.png)
+![screenshots](https://raw.githubusercontent.com/querry43/gb-cookie-hunt/master/screenshots.gif)
 
 This is a classic GameBoy game featuring our favorite robot: Gumdrop.  Help
 Gumdrop find web cookies to replenish energy while avoiding obstacles.  Keep
@@ -33,15 +33,20 @@ emulator.
 
 TODO
 ----
-[ ] Title screen
-[ ] Level select screen
-[ ] Score screen
-[ ] Energy meter
-[ ] Level 1, just cookies
-[ ] Level 2, cookies and barriers
-[ ] Level 3, cookies, barriers, and enemies
+- [x] Initial title screen
+- [x] Initial level select screen
+- [x] Initial score screen
+- [x] Initial energy meter
+- [ ] Initial sound
+- [x] Level 1, just cookies
+- [ ] Level 2, cookies and barriers
+- [ ] Level 3, cookies, barriers, and enemies
+- [ ] Improve assets
+- [ ] Skip text on level select
+- [ ] Remember level on level select
 
 Bugs
 ----
-[ ] Overlapping cookies
-[ ] Background tiles on the HUD
+- [ ] Overlapping cookies
+- [ ] Split cookies (on edge of background?)
+- [ ] Background tiles on the HUD

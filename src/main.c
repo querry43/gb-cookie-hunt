@@ -10,12 +10,8 @@ void main()
 
   while (TRUE) {
     show_menu();
-
     start_game();
-
     show_score();
-    waitpadup();
-    waitpad(J_START | J_SELECT | J_A | J_B);
   }
 }
 

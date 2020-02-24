@@ -53,13 +53,35 @@ void start_game()
 
     // background scrolls during VBL
 
+    if ((game_state.frame_counter % 32) == 0) {
+      game_state.score += 1U;
+    }
+
+    if ((game_state.frame_counter % 32) == 0) {
+      game_state.energy_level--;
+      if (game_state.energy_level == 0) {
+        return;
+      }
+    }
+
     if ((game_state.frame_counter % 8) == 0) {
       if (DEBUG) {
         printi_win(-2, 0, gumdrop_x());
         printi_win(-2, 1, gumdrop_y());
       }
 
-      printi_win(6, 1, game_state.cookie_count);
+      //printi_win(6, 1, game_state.cookie_count);
+      if (game_state.energy_level > 75) {
+        prints_win(4, 1, "IooooI");
+      } else if (game_state.energy_level > 50) {
+        prints_win(4, 1, "Iooo I");
+      } else if (game_state.energy_level > 25) {
+        prints_win(4, 1, "Ioo  I");
+      } else {
+        prints_win(4, 1, "Io   I");
+      }
+
+      printi_win(14, 1, game_state.score);
 
       test_intersection();
     }
@@ -73,7 +95,15 @@ void test_intersection() {
     if (intersects_with_gumball(game_state.cookies[i])) {
       remove_cookie(i);
       place_cookie(i);
+
       game_state.cookie_count++;
+
+      game_state.energy_level = min(
+        game_state.energy_level + cookie_energy_capacity,
+        100
+      );
+
+      game_state.score += 10;
     }
   }
 }
@@ -98,6 +128,8 @@ void init() {
   game_state.gumdrop.speed.x.w = game_state.gumdrop.speed.y.w = 0;
 
   game_state.cookie_count = 0;
+  game_state.energy_level = 75;
+  game_state.score = 0;
 
   init_interface();
   init_sprites();
@@ -158,7 +190,8 @@ void init_interface() {
 
   set_win_tiles(0, 0, 20, 2, hud_game_map);
 
-  prints_win(4, 0, "cookies");
+  prints_win(4, 0, "Energy");
+  prints_win(14, 0, "Score");
 
   move_win(7, 128);
 }
