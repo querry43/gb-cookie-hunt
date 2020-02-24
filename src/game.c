@@ -2,11 +2,10 @@
 #include <rand.h>
 #include <stdlib.h>
 
-#include "../tile-data/tileset.h"
+#include "../tile-data/tileset.game.h"
 #include "config.h"
 #include "game.h"
 #include "text.h"
-#include "types.h"
 
 #define min(x,y) ((x) > (y) ? (y) : (x))
 #define max(x,y) ((x) < (y) ? (y) : (x))
@@ -40,6 +39,11 @@ void start_game()
   init();
 
   while(TRUE) {
+    // debugging
+    // if (game_state.cookie_count >= 5) {
+    //   return;
+    // }
+
     wait_vbl_done();
     game_state.frame_counter++;
 
@@ -77,15 +81,23 @@ void test_intersection() {
 void init() {
   disable_interrupts();
   DISPLAY_OFF;
+  HIDE_BKG;
+  HIDE_SPRITES;
+  HIDE_WIN;
 
   initarand(0);
 
   init_text();
 
-  set_bkg_data(0x26, 26, tileset);
-  set_sprite_data(0, 8, robot_sprite);
+  set_bkg_data(game_tileset_offset, game_tileset_size, game_tileset);
+  set_sprite_data(0, 8, robot_game_sprite);
+
+  game_state.background.x.w = game_state.background.y.w = 0;
 
   game_state.gumdrop.x.b.h = game_state.gumdrop.y.b.h = 75;
+  game_state.gumdrop.speed.x.w = game_state.gumdrop.speed.y.w = 0;
+
+  game_state.cookie_count = 0;
 
   init_interface();
   init_sprites();
@@ -113,7 +125,7 @@ void place_cookie(UBYTE i) {
   game_state.cookies[i].tile.y = arand() & 0x1f;
   game_state.cookies[i].x.b.h = (game_state.cookies[i].tile.x * 8) + 8;
   game_state.cookies[i].y.b.h = (game_state.cookies[i].tile.y * 8) + 16;
-  set_bkg_tiles(game_state.cookies[i].tile.x, game_state.cookies[i].tile.y, 2, 2, cookie_map);
+  set_bkg_tiles(game_state.cookies[i].tile.x, game_state.cookies[i].tile.y, 2, 2, cookie_game_map);
 }
 
 void remove_cookie(UBYTE i) {
@@ -125,7 +137,7 @@ void remove_cookie(UBYTE i) {
 }
 
 void place_background(UBYTE x, UBYTE y) {
-  set_bkg_tiles(x, y, 1, 1, background_map + (x % 4) + ((y % 4) * 4));
+  set_bkg_tiles(x, y, 1, 1, background_game_map + (x % 4) + ((y % 4) * 4));
 }
 
 void init_sprites() {
@@ -142,9 +154,9 @@ void init_interface() {
 
   for (x = 0; x < 32; x += 4)
     for (y = 0; y < 32; y += 4)
-      set_bkg_tiles(x, y, 4, 4, background_map);
+      set_bkg_tiles(x, y, 4, 4, background_game_map);
 
-  set_win_tiles(0, 0, 20, 2, hud_map);
+  set_win_tiles(0, 0, 20, 2, hud_game_map);
 
   prints_win(4, 0, "cookies");
 

@@ -21,8 +21,17 @@ typedef struct _cookie_t {
   pos_t y;
 } cookie_t;
 
+typedef enum _game_mode_t {
+  LEVEL1 = 0,
+  LEVEL2 = 1,
+  LEVEL3 = 2,
+} game_mode_t;
+
+
 typedef struct _state_t {
   UBYTE frame_counter;
+
+  game_mode_t game_mode;
 
   struct _background {
     pos_t x;
@@ -47,3 +56,5 @@ typedef struct _state_t {
 } state_t;
 
 #endif
+
+// vim: ts=2 sw=2
