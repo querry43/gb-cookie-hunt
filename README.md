@@ -30,3 +30,18 @@ Running
 -------
 The ROM builds into src/cookie-hunt.gb .  Run it in your favorite GameBoy
 emulator.
+
+TODO
+----
+[ ] Title screen
+[ ] Level select screen
+[ ] Score screen
+[ ] Energy meter
+[ ] Level 1, just cookies
+[ ] Level 2, cookies and barriers
+[ ] Level 3, cookies, barriers, and enemies
+
+Bugs
+----
+[ ] Overlapping cookies
+[ ] Background tiles on the HUD
