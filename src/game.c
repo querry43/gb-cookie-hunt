@@ -156,8 +156,15 @@ void init_cookies() {
 }
 
 void place_cookie(UBYTE i) {
-  game_state.cookies[i].tile.x = arand() & 0x1f;
-  game_state.cookies[i].tile.y = arand() & 0x1f;
+  // cookies must be places between 0 and 30 inclusive in y and x
+  // cookies should be at least 4 tiles apart
+  // it is ok if two cookies are exactly ontop of eachother
+  UBYTE x = arand();
+  UBYTE y = arand();
+
+  game_state.cookies[i].tile.x = (x % 7) * 4;
+  game_state.cookies[i].tile.y = (y % 7) * 4;
+
   game_state.cookies[i].x.b.h = (game_state.cookies[i].tile.x * 8) + 8;
   game_state.cookies[i].y.b.h = (game_state.cookies[i].tile.y * 8) + 16;
   set_bkg_tiles(game_state.cookies[i].tile.x, game_state.cookies[i].tile.y, 2, 2, cookie_game_map);

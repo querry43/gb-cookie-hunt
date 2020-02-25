@@ -42,11 +42,12 @@ TODO
 - [ ] Level 2, cookies and barriers
 - [ ] Level 3, cookies, barriers, and enemies
 - [ ] Improve assets
-- [ ] Skip text on level select
+- [ ] Skip song on title screen
+- [x] Skip text on level select
 - [ ] Remember level on level select
 
 Bugs
 ----
-- [ ] Overlapping cookies
-- [ ] Split cookies (on edge of background?)
-- [ ] Background tiles on the HUD
+- [x] Overlapping cookies
+- [x] Split cookies (on edge of background?)
+- [x] Background tiles on the HUD

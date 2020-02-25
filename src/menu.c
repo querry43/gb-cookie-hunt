@@ -6,12 +6,12 @@
 #include "tile_maps.h"
 #include "types.h"
 
-const unsigned char menu_line1[] = " Help Gumdrop find  ";
-const unsigned char menu_line2[] = "  web cookies to    ";
-const unsigned char menu_line3[] = "  replenish energy  ";
+const unsigned char menu_line1[] = "Help Gumdrop find";
+const unsigned char menu_line2[] = "web cookies to";
+const unsigned char menu_line3[] = "replenish energy";
 
-const unsigned char menu_line4[] = "Keep Gumdrop moving ";
-const unsigned char menu_line5[] = " as long as you can ";
+const unsigned char menu_line4[] = "Keep Gumdrop moving";
+const unsigned char menu_line5[] = "as long as you can";
 
 const unsigned char menu_line6[] = "Level 1";
 const unsigned char menu_line7[] = "Level 2";
@@ -21,10 +21,29 @@ const unsigned char select[] = "o";
 const unsigned char unselect[] = " ";
 
 game_mode_t selected_mode;
+UBYTE local_slow_text_delay;
 
+UBYTE skip_scroll() {
+  return joypad() & (J_A | J_B | J_START);
+}
+
+void scroll(UBYTE x, UBYTE y, unsigned char text[], UBYTE allow_skip_scroll) {
+  UBYTE offset;
+  for (offset = 0; offset < 20; offset++) {
+    if (*(text + offset) == '\0')
+      return;
+
+    printc_win(x + offset, y, *(text + offset));
+
+    if (skip_scroll() && allow_skip_scroll)
+      local_slow_text_delay = 1;
+
+    delay(local_slow_text_delay);
+  }
+}
 
 void show_menu() {
-  UBYTE x, y;
+  UBYTE y;
   UBYTE j;
 
   disable_interrupts();
@@ -42,40 +61,22 @@ void show_menu() {
 
   DISPLAY_ON;
 
-  for (x = 1; x < 18; x++) {
-    printc_win(x, 0, *(menu_line1 + x));
-    delay(slow_text_delay);
-  }
+  local_slow_text_delay = slow_text_delay;
 
-  for (x = 2; x < 16; x++) {
-    printc_win(x, 1, *(menu_line2 + x));
-    delay(slow_text_delay);
-  }
+  scroll(1, 1, menu_line1, FALSE);
+  scroll(2, 2, menu_line2, TRUE);
+  scroll(2, 3, menu_line3, TRUE);
 
-  for (x = 2; x < 18; x++) {
-    printc_win(x, 2, *(menu_line3 + x));
-    delay(slow_text_delay);
-  }
+  delay(local_slow_text_delay * 8);
 
-  for (x = 0; x < 8; x++)
-    delay(slow_text_delay);
+  scroll(0, 5, menu_line4, TRUE);
+  scroll(1, 6, menu_line5, TRUE);
 
-  for (x = 0; x < 19; x++) {
-    printc_win(x, 4, *(menu_line4 + x));
-    delay(slow_text_delay);
-  }
+  delay(local_slow_text_delay * 8);
 
-  for (x = 1; x < 19; x++) {
-    printc_win(x, 5, *(menu_line5 + x));
-    delay(slow_text_delay);
-  }
-
-  for (x = 0; x < 8; x++)
-    delay(slow_text_delay);
-
-  prints_win(7, 9, menu_line6);
-  prints_win(7, 10, menu_line7);
-  prints_win(7, 11, menu_line8);
+  prints_win(7, 10, menu_line6);
+  prints_win(7, 11, menu_line7);
+  prints_win(7, 12, menu_line8);
 
   selected_mode = LEVEL1;
 
@@ -84,9 +85,9 @@ void show_menu() {
   while(TRUE) {
     for (y = 0; y < 3; y++) {
       if (y == selected_mode)
-        prints_win(5, y + 9, select);
+        prints_win(5, y + 10, select);
       else
-        prints_win(5, y + 9, unselect);
+        prints_win(5, y + 10, unselect);
     }
 
     waitpadup();

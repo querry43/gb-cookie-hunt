@@ -22,7 +22,7 @@
 
 #define slow_text_delay 50
 
-#define cookie_energy_capacity 20
+#define cookie_energy_capacity 10
 
 #define song_delay 200
 
