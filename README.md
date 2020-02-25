@@ -37,7 +37,7 @@ TODO
 - [x] Initial level select screen
 - [x] Initial score screen
 - [x] Initial energy meter
-- [ ] Initial sound
+- [x] Initial sound
 - [x] Level 1, just cookies
 - [ ] Level 2, cookies and barriers
 - [ ] Level 3, cookies, barriers, and enemies

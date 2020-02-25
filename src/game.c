@@ -1,10 +1,10 @@
 #include <gb/gb.h>
 #include <rand.h>
 #include <stdlib.h>
-
 #include "../tile-data/tileset.game.h"
 #include "config.h"
 #include "game.h"
+#include "sound.h"
 #include "text.h"
 
 #define min(x,y) ((x) > (y) ? (y) : (x))
@@ -57,9 +57,10 @@ void start_game()
       game_state.score += 1U;
     }
 
-    if ((game_state.frame_counter % 32) == 0) {
+    if ((game_state.frame_counter % 16) == 0) {
       game_state.energy_level--;
       if (game_state.energy_level == 0) {
+        play_game_over();
         return;
       }
     }
@@ -104,6 +105,8 @@ void test_intersection() {
       );
 
       game_state.score += 10;
+
+      play_eat_cookie();
     }
   }
 }

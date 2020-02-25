@@ -24,4 +24,6 @@
 
 #define cookie_energy_capacity 20
 
+#define song_delay 200
+
 #endif

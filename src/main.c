@@ -3,12 +3,14 @@
 #include "menu.h"
 #include "title.h"
 #include "score.h"
+#include "sound.h"
 
 void main()
 {
-  show_title();
+  init_sound();
 
   while (TRUE) {
+    show_title();
     show_menu();
     start_game();
     show_score();
