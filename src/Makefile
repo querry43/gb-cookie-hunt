@@ -2,7 +2,9 @@ CC  = lcc -Wa-l -Wl-m -Wl-j
 
 all: cookie-hunt.gb
 
-cookie-hunt.gb: game.o main.o menu.o text.o score.o sound.o tile_maps.o title.o ../tile-data/*.o
+cookie-hunt.gb: game.o cookie-hunt.o menu.o text.o score.o sound.o tile_maps.o title.o ../tile-data/*.o
+
+test.gb: test.o
 
 %.gb:
 	$(CC) -Wl-yt2 -Wl-yo4 -Wl-ya4 -o $@ $^
