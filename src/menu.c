@@ -104,11 +104,10 @@ void show_menu() {
       else
         selected_mode++;
     } else if (j & (J_START | J_SELECT | J_A | J_B)) {
-      break;
+      game_mode = selected_mode;
+      return;
     }
   }
-
-  game_state.game_mode = selected_mode;
 }
 
 // vim: ts=2 sw=2

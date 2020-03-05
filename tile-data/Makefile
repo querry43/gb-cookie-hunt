@@ -6,7 +6,9 @@ game_images = \
 	../images/black.png \
 	../images/cookie.png \
 	../images/hud.png \
-	../images/white.png
+	../images/white.png \
+	../images/h-barrier.png \
+	../images/v-barrier.png
 
 title_images = \
 	../images/title.png
@@ -26,6 +28,8 @@ all: \
 	background.game.map.o \
 	cookie.game.map.o \
 	hud.game.map.o \
+	h-barrier.game.map.o \
+	v-barrier.game.map.o \
 	\
 	robot.game.sprite.o \
 	\

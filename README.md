@@ -39,7 +39,7 @@ TODO
 - [x] Initial energy meter
 - [x] Initial sound
 - [x] Level 1, just cookies
-- [ ] Level 2, cookies and barriers
+- [x] Level 2, cookies and barriers
 - [ ] Level 3, cookies, barriers, and enemies
 - [ ] Improve assets
 - [ ] Skip song on title screen
@@ -51,3 +51,7 @@ Bugs
 - [x] Overlapping cookies
 - [x] Split cookies (on edge of background?)
 - [x] Background tiles on the HUD
+- [ ] Mode selection is broken
+- [ ] Final score is broken
+- [ ] Split barriers
+- [ ] Score jitter when on barrier

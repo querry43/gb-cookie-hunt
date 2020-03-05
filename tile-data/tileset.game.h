@@ -9,4 +9,7 @@ extern unsigned char background_game_map[];
 
 extern unsigned char robot_game_sprite[];
 
+extern unsigned char hbarrier_game_map[];
+extern unsigned char vbarrier_game_map[];
+
 #endif
